@@ -1,5 +1,7 @@
 # Quadoculars
 
+[![Crates.io](https://img.shields.io/crates/v/quadoculars.svg)](https://crates.io/crates/quadoculars)
+
 Concurrent, composable simple file watcher on top of notify-rs.
 
 ## Features
