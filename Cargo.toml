@@ -4,7 +4,6 @@ version = "0.1.2"
 authors = ["Ar37-rs <adyaro37@gmail.com>"]
 edition = "2018"
 description = "Concurrent, composable simple file watcher on top of notify-rs with fast live reloading support."
-license = "Apache-2.0"
 license-file = "LICENSE.txt"
 repository = "https://github.com/Ar37-rs/quadoculars"
 readme = "README.md"
