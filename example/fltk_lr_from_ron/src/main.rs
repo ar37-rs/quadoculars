@@ -102,7 +102,7 @@ fn main() -> anyhow::Result<()> {
     let _tx = tx.clone();
 
     thread::spawn(move || -> anyhow::Result<()> {
-        let tx = _tx.clone();
+        let tx = _tx;
         let mut btns = _btns;
         let ron = _ron;
         // while btns.reload_from_ron(&ron, 0.6)? {
