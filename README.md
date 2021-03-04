@@ -18,7 +18,7 @@ quadoculars = "*"
 or
 
 ```toml
-quadoculars = { git = https://github.com/Ar37-rs/quadoculars.git }
+quadoculars = { git = "https://github.com/Ar37-rs/quadoculars.git" }
 ```
 
 ## Quick Example
