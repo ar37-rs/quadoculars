@@ -36,14 +36,16 @@ use std::{
 
 fn main() -> Result<()> {
     let file: PathBuf;
-    match PathBuf::from_str("filename.extention") {
-        Ok(file_) => file = file_,
-        _ => file = Path::new("otherfilename.otherextension").to_path_buf(),
+    {
+        match PathBuf::from_str("filename.extention") {
+            Ok(file_) => file = file_,
+            _ => file = Path::new("otherfilename.otherextension").to_path_buf(),
+        }
     }
 
     let (tx, rx) = channel();
 
-    while let Ok(file_exist) = Watch::new().set_timeout(0.6).single_file(&file, tx.clone()) {
+    while let Ok(file_exist) = Watch::new().set_timeout(0.6).single_file(&file,tx.clone()) {
         if !file_exist {
             println!("no file to watch");
             break;
@@ -71,7 +73,3 @@ fn main() -> Result<()> {
 ## More Examples
 
 Watching Multiple files and live reloading values can be found [here](https://github.com/Ar37-rs/quadoculars/tree/main/example).
-
-
-
-

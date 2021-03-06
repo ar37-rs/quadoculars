@@ -1,7 +1,7 @@
 use fltk::{app::*, button::*, frame::*, window::*};
 use quadoculars::LiveRon;
 use serde::Deserialize;
-use std::{env, path::PathBuf, thread, time::Duration, sync::mpsc::channel};
+use std::{env, path::PathBuf, sync::mpsc::channel, thread, time::Duration};
 // std channel can be replaced alternatively either with flume channel or crossbeam channel,
 // set dependencies:
 

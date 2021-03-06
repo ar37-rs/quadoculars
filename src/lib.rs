@@ -72,8 +72,11 @@ fn watch(file: PathBuf, tx: Sender<Fstate<PathBuf>>, timeout: f32) -> Result<()>
         }
     };
 
-    let timeout = (timeout * MILLIS) as u32;
-    let duration = Duration::from_millis((timeout / BREAK_POINT as u32).into());
+    let duration: Duration;
+    {
+        let timeout = (timeout * MILLIS) as u32;
+        duration = Duration::from_millis((timeout / BREAK_POINT as u32).into());
+    }
 
     while let Some(_file_) = Some(file.exists()) {
         if _file_ {
@@ -91,7 +94,7 @@ fn watch(file: PathBuf, tx: Sender<Fstate<PathBuf>>, timeout: f32) -> Result<()>
                                             let _ = tx.send(Fstate::Changed(file.clone()));
                                             first_data = seconds_data;
                                         }
-                                        _ => (),
+                                        _ => drop(seconds_data),
                                     }
                                 }
                             }
@@ -170,7 +173,6 @@ impl Watch {
     pub fn single_file<'a>(&self, file: &'a PathBuf, tx: Sender<Fstate<PathBuf>>) -> Result<bool> {
         let timeout = self.timeout;
         if file.exists() {
-            let tx = tx.clone();
             let file = file.clone();
             spawn(move || {
                 watch(file, tx, timeout).expect("error occured while spawning watcher.");
@@ -183,26 +185,29 @@ impl Watch {
 
     /// Technically the same as single_file watcher, but for multilple files.
     #[inline]
-    pub fn multiple_files(
+    pub fn multiple_files<'a>(
         &self,
         vec_files: &mut Vec<PathBuf>,
         tx: Sender<Fstate<PathBuf>>,
     ) -> Result<bool> {
-        let tmp_vec_files = vec_files
-            .clone()
-            .into_iter()
-            .filter(|path| path.is_file())
-            .collect::<Vec<_>>();
+        let tmp_vec_files: Vec<PathBuf>;
+        {
+            tmp_vec_files = vec_files
+                .clone()
+                .into_iter()
+                .filter(|path| path.is_file())
+                .collect::<Vec<_>>();
+        }
         if tmp_vec_files.len() > ZERO {
             let timeout = self.timeout;
             *vec_files = tmp_vec_files;
-            let mut vec_transmiter = Vec::new();
+            let mut vec_transmitter = Vec::new();
             {
                 for _ in ZERO..vec_files.len() {
-                    vec_transmiter.push(tx.clone());
+                    vec_transmitter.push(tx.clone());
                 }
             }
-            for (i, tx) in vec_transmiter.iter().enumerate() {
+            for (i, tx) in vec_transmitter.iter().enumerate() {
                 let tx = tx.to_owned();
                 let file = vec_files[i].clone();
                 spawn(move || {
@@ -270,7 +275,6 @@ impl Watch {
         }
 
         if json.exists() {
-            let tx = tx.clone();
             let json = json.clone();
             spawn(move || {
                 watch(json, tx, timeout).expect("error occured while spawning watcher.");
@@ -323,7 +327,6 @@ impl Watch {
             }
         }
         if json.exists() {
-            let tx = tx.clone();
             let json = json.clone();
             spawn(move || {
                 watch(json, tx, timeout).expect("error occured while spawning watcher.");
@@ -345,36 +348,6 @@ impl Watch {
             Ok(TRUE)
         } else {
             Ok(FALSE)
-        }
-    }
-
-     #[cfg(feature = "live_json")]
-    /// Single function hot reloader, mutate json Value directy from small json file in local event loop.
-    ///
-    /// Warning! (unstable function):
-    ///
-    /// this will increase CPU load if delay duration is smaller than 0.05 (on particular ocassion),
-    /// and will cause slowdown the entire event loop process if the delay value large than 0.2 seconds.
-    ///
-    /// set delay_secs accordingly.
-    #[inline]
-    pub fn mutate_json_val<'a>(&mut self, val: &mut Value, json: &'a PathBuf, delay_secs: f32) {
-        let delay;
-        if delay_secs <= 0.0 {
-            delay = 0.1;
-        } else {
-            delay = delay_secs;
-        }
-        if let Ok(file) = File::open(json) {
-            match serde_json::from_reader(BufReader::new(file)) {
-                Ok(loaded) => {
-                    *val = loaded;
-                    sleep(Duration::from_secs_f32(delay));
-                }
-                _ => (),
-            }
-        } else {
-            sleep(Duration::from_secs_f32(delay));
         }
     }
 
@@ -415,7 +388,6 @@ impl Watch {
         }
 
         if ron.exists() {
-            let tx = tx.clone();
             let ron = ron.clone();
             spawn(move || {
                 watch(ron, tx, timeout).expect("error occured while spawning watcher.");
@@ -477,39 +449,6 @@ pub trait LiveJson {
             Ok(false)
         }
     }
-
-    /// Single function hot reloader, mutate from small json file in local event loop.
-    ///
-    /// Warning! (unstable function):
-    ///
-    /// this will increase CPU load if delay duration is smaller than 0.05 (on particular ocassion),
-    /// and will cause slowdown the entire event loop process if the delay large than 0.2 seconds.
-    ///
-    /// set delay_secs accordingly.
-    #[inline]
-    fn mutate_from_json<'a>(&mut self, json: &'a PathBuf, delay_secs: f32)
-    where
-        Self: serde::de::DeserializeOwned,
-    {
-        let delay;
-        if delay_secs <= 0.0 {
-            delay = 0.1;
-        } else {
-            delay = delay_secs;
-        }
-        if let Ok(file) = File::open(json) {
-            match serde_json::from_reader(BufReader::new(file)) {
-                Ok(loaded) => {
-                    // if implemented from missing members, rust analyzer usually will change *self to *oculars (this crate), just change it back from *oculars to *self
-                    *self = loaded;
-                    sleep(Duration::from_secs_f32(delay));
-                }
-                _ => (),
-            }
-        } else {
-            sleep(Duration::from_secs_f32(delay));
-        }
-    }
 }
 
 #[cfg(feature = "live_ron")]
@@ -546,39 +485,6 @@ pub trait LiveRon {
             Ok(mutate)
         } else {
             Ok(false)
-        }
-    }
-
-    /// Single function hot reloader, mutate from small ron file in local event loop.
-    ///
-    /// Warning! (unstable function):
-    ///
-    /// this will increase CPU load if delay duration is smaller than 0.05 (on particular ocassion),
-    /// and will cause slowdown the entire event loop process if the delay large than 0.2 seconds.
-    ///
-    /// set delay_secs accordingly.
-    #[inline]
-    fn mutate_from_ron<'a>(&mut self, ron: &'a PathBuf, delay_secs: f32)
-    where
-        Self: serde::de::DeserializeOwned,
-    {
-        let delay;
-        if delay_secs <= 0.0 {
-            delay = 0.1;
-        } else {
-            delay = delay_secs;
-        }
-        if let Ok(file) = File::open(ron) {
-            match ron::de::from_reader(BufReader::new(file)) {
-                Ok(loaded) => {
-                    // if implemented from missing members, rust analyzer usually will change *self to *oculars (this crate), just change it back from *oculars to *self
-                    *self = loaded;
-                    sleep(Duration::from_secs_f32(delay));
-                }
-                _ => (),
-            }
-        } else {
-            sleep(Duration::from_secs_f32(delay));
         }
     }
 }

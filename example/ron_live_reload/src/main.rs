@@ -64,19 +64,6 @@ fn main() -> anyhow::Result<()> {
     }
 
     Ok(())
-
-    // // Mutate in event loop.
-    // loop {
-    //     btns.mutate_from_ron(&ron, 1.0);
-    //     let btn_dec_label = btns.btn_dec_label.clone();
-    //     let x = btns.btn_dec_pos.x;
-    //     let y = btns.btn_dec_pos.y;
-    //     println!("btn_dec_label: {}", btn_dec_label);
-    //     println!("btn_dec_pos.x: {}", x);
-    //     println!("btn_dec_pos.x: {}", y);
-    //     println!(" ");
-    //     // println!("continue other logic...");
-    // }
 }
 
 // Multi-thread example
@@ -136,7 +123,7 @@ fn main() -> anyhow::Result<()> {
 //     let _tx = tx.clone();
 
 //     thread::spawn(move || -> anyhow::Result<()> {
-//         let tx = _tx.clone();
+//         let tx = _tx;
 //         let mut btns = _btns;
 //         let ron = _ron;
 //         while btns.reload_from_ron(&ron, 0.6)? {
