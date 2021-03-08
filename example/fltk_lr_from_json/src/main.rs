@@ -77,7 +77,7 @@ fn main() -> anyhow::Result<()> {
                 if let Ok(_pth) = env::var("CARGO_MANIFEST_DIR") {
                     json = PathBuf::from(_pth);
                 }
-                json.push("src\\json\\Btns.json");
+                json.push("src/json/Btns.json");
                 // Reload init json file (optional)
                 btns.reinit_from_json(&json);
             }
