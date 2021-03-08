@@ -73,7 +73,7 @@ fn main() -> anyhow::Result<()> {
         if let Ok(_pth) = env::var("CARGO_MANIFEST_DIR") {
             ron = PathBuf::from(_pth);
         }
-        ron.push("src\\ron\\Btns.ron");
+        ron.push("src/ron/Btns.ron");
     }
 
     let mut btns: Btns = Btns {
