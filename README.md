@@ -2,6 +2,7 @@
 
 [![Crates.io](https://img.shields.io/crates/v/quadoculars.svg)](https://crates.io/crates/quadoculars)
 [![Rust](https://github.com/Ar37-rs/quadoculars/actions/workflows/rust.yml/badge.svg)](https://github.com/Ar37-rs/quadoculars/actions/workflows/rust.yml)
+
 Concurrent, composable simple file watcher on top of notify-rs.
 
 ## Features
