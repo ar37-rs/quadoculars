@@ -70,7 +70,7 @@ fn watch(file: PathBuf, tx: Sender<Fstate<PathBuf>>, timeout: f32) -> Result<()>
                 panic!("{} {}", e, file.to_string_lossy());
             }
         }
-    };
+    }
 
     let duration: Duration;
     {
@@ -124,7 +124,7 @@ fn watch(file: PathBuf, tx: Sender<Fstate<PathBuf>>, timeout: f32) -> Result<()>
                                     first_data = seconds_data;
                                     break;
                                 }
-                                _ => (),
+                                _ => drop(seconds_data),
                             }
                         }
                     }
@@ -243,15 +243,13 @@ impl Watch {
     where
         T: serde::de::DeserializeOwned,
     {
-        {
-            if let Ok(file) = File::open(json) {
-                match serde_json::from_reader(BufReader::new(file)) {
-                    Ok(loaded) => {
-                        // if implemented from missing members, rust analyzer usually will change *self to *oculars (this crate), just change it back from *oculars to *self
-                        *mut_struct = loaded;
-                    }
-                    _ => (),
+        if let Ok(file) = File::open(json) {
+            match serde_json::from_reader(BufReader::new(file)) {
+                Ok(loaded) => {
+                    // if implemented from missing members, rust analyzer usually will change *self to *oculars (this crate), just change it back from *oculars to *self
+                    *mut_struct = loaded;
                 }
+                _ => (),
             }
         }
     }
@@ -357,14 +355,12 @@ impl Watch {
     where
         T: serde::de::DeserializeOwned,
     {
-        {
-            if let Ok(file) = File::open(ron) {
-                match ron::de::from_reader(BufReader::new(file)) {
-                    Ok(loaded) => {
-                        *mut_struct = loaded;
-                    }
-                    _ => (),
+        if let Ok(file) = File::open(ron) {
+            match ron::de::from_reader(BufReader::new(file)) {
+                Ok(loaded) => {
+                    *mut_struct = loaded;
                 }
+                _ => (),
             }
         }
     }
@@ -424,7 +420,7 @@ pub trait LiveJson {
         if let Ok(file) = File::open(json) {
             match serde_json::from_reader(BufReader::new(file)) {
                 Ok(loaded) => {
-                    // if implemented from missing members, rust analyzer usually will change *self to *oculars (this crate), just change it back from *oculars to *self
+                    // if implemented from missing members, rust analyzer usually will change *self to *quadoculars (this crate), just change it back from *oculars to *self
                     *self = loaded;
                 }
                 _ => (),
@@ -442,12 +438,8 @@ pub trait LiveJson {
     where
         Self: serde::de::DeserializeOwned,
     {
-        // and this, change input mut_struct: from oculars to self
-        if let Ok(mutate) = Watch::new().set_timeout(timeout).de_json(self, json) {
-            Ok(mutate)
-        } else {
-            Ok(false)
-        }
+        // and this, change input mut_struct: from quadoculars to self
+        Watch::new().set_timeout(timeout).de_json(self, json)
     }
 }
 
@@ -462,7 +454,7 @@ pub trait LiveRon {
         if let Ok(file) = File::open(ron) {
             match ron::de::from_reader(BufReader::new(file)) {
                 Ok(loaded) => {
-                    // if implemented from missing members, rust analyzer usually will change *self to *oculars (this crate), just change it back from *oculars to *self
+                    // if implemented from missing members, rust analyzer usually will change *self to *quadoculars (this crate), just change it back from *oculars to *self
                     *self = loaded;
                 }
                 _ => (),
@@ -480,11 +472,78 @@ pub trait LiveRon {
     where
         Self: serde::de::DeserializeOwned,
     {
-        // and this, change input mut_struct: from oculars to self
-        if let Ok(mutate) = Watch::new().set_timeout(timeout).de_ron(self, ron) {
-            Ok(mutate)
-        } else {
-            Ok(false)
+        // and this, change input mut_struct: from quadoculars to self
+        Watch::new().set_timeout(timeout).de_ron(self, ron)
+    }
+}
+
+#[cfg(test)]
+#[allow(unused_imports)]
+mod tests {
+    use super::*;
+    use cfg_if::cfg_if;
+    cfg_if! {
+       if #[cfg(feature = "crossbeam_channel")] {
+           use crossbeam_channel::{bounded, Sender};
+       } else if #[cfg(feature = "flume_channel")] {
+           use flume::{bounded, Sender};
+       } else {
+           use std::sync::mpsc::{sync_channel, Sender};
+       }
+    }
+    use std::{env, str::FromStr};
+
+    #[test]
+    #[allow(unused_variables)]
+    fn test_if_file_not_exist() {
+        cfg_if! {
+            if  #[cfg(feature = "crossbeam_channel")] {
+               let (tx, rx) = bounded(ZERO);
+            } else if #[cfg(feature = "flume_channel")] {
+               let (tx, rx) = bounded(ZERO);
+            }  else {
+               let (tx, rx) = std::sync::mpsc::channel();
+            }
+        }
+
+        let file_not_exist = PathBuf::from_str("file.not_exist").unwrap();
+
+        while let Ok(is_watching_file_not_yet_exist) = Watch::new()
+            .set_timeout(0.6)
+            .single_file(&file_not_exist, tx.to_owned())
+        {
+            assert_eq!(is_watching_file_not_yet_exist, false);
+            break;
+        }
+    }
+
+    #[test]
+    #[allow(unused_variables)]
+    fn test_if_file_exist() {
+        cfg_if! {
+            if  #[cfg(feature = "crossbeam_channel")] {
+               let (tx, rx) = bounded(ZERO);
+            } else if #[cfg(feature = "flume_channel")] {
+               let (tx, rx) = bounded(ZERO);
+            }  else {
+               let (tx, rx) = std::sync::mpsc::channel();
+            }
+        }
+
+        let mut file_exist = PathBuf::new();
+        {
+            if let Ok(_pth) = env::var("CARGO_MANIFEST_DIR") {
+                file_exist = PathBuf::from(_pth);
+            }
+            file_exist.push("Cargo.toml");
+        }
+
+        while let Ok(is_watching_cargo_toml) = Watch::new()
+            .set_timeout(0.6)
+            .single_file(&file_exist, tx.to_owned())
+        {
+            assert_eq!(is_watching_cargo_toml, true);
+            break;
         }
     }
 }

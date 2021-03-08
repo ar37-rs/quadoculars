@@ -1,10 +1,10 @@
 [package]
 name = "quadoculars"
-version = "0.1.24"
+version = "0.1.37"
 authors = ["Ar37-rs <adyaro37@gmail.com>"]
 edition = "2018"
 description = "Concurrent, composable simple file watcher on top of notify-rs with fast live reloading support."
-license-file = "LICENSE.txt"
+license = "Apache-2.0"
 repository = "https://github.com/Ar37-rs/quadoculars"
 readme = "README.md"
 keywords = ["filesystem", "utility", "events"]
@@ -41,3 +41,8 @@ live_json = ["serde", "serde_json"]
 live_ron = ["serde", "ron"]
 flume_channel = ["flume"]
 crossbeam_channel = ["crossbeam-channel"]
+
+[dev-dependencies]
+cfg-if = "1"
+flume = "0.10"
+crossbeam-channel = "0.5"
