@@ -5,16 +5,16 @@ fn main() -> anyhow::Result<()> {
     let mut vec_files = Vec::new();
     {
         let mut files = Vec::new();
-        files.push("files\\file 1.xml");
-        files.push("files\\file 2.xaml");
-        files.push("files\\file 3.json");
-        files.push("files\\file 4.toml");
-        files.push("files\\file 5.ron");
+        files.push("files/file 1.xml");
+        files.push("files/file 2.xaml");
+        files.push("files/file 3.json");
+        files.push("files/file 4.toml");
+        files.push("files/file 5.ron");
         for file in files {
             let mut absolute_file: PathBuf = PathBuf::from_str("")?;
             if let Ok(path) = env::var("CARGO_MANIFEST_DIR") {
                 absolute_file.clear();
-                absolute_file = PathBuf::from(path + "\\" + file);
+                absolute_file = PathBuf::from(path + "/" + file);
             }
             vec_files.push(absolute_file);
         }
