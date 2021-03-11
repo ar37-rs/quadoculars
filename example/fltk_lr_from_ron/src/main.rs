@@ -85,7 +85,7 @@ fn main() -> anyhow::Result<()> {
 
     btns.reinit_from_ron(&ron);
 
-    btn_inc.set_label(&format!("{}", btns.btn_inc_label));
+    btn_inc.set_label(&format!("{} +", btns.btn_inc_label));
     btn_inc.set_pos(btns.btn_inc_pos.x, btns.btn_inc_pos.y);
 
     btn_dec.set_label(&format!("{} -", btns.btn_dec_label));

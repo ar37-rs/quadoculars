@@ -140,7 +140,6 @@ fn watch(file: PathBuf, tx: Sender<Fstate<PathBuf>>, timeout: f32) -> Result<()>
             }
         }
     }
-
     drop(first_data);
     watcher.unwatch(file)?;
     drop(watcher);
@@ -185,7 +184,7 @@ impl Watch {
 
     /// Technically the same as single_file watcher, but for multilple files.
     #[inline]
-    pub fn multiple_files<'a>(
+    pub fn multiple_files(
         &self,
         vec_files: &mut Vec<PathBuf>,
         tx: Sender<Fstate<PathBuf>>,
@@ -246,7 +245,7 @@ impl Watch {
         if let Ok(file) = File::open(json) {
             match serde_json::from_reader(BufReader::new(file)) {
                 Ok(loaded) => {
-                    // if implemented from missing members, rust analyzer usually will change *self to *oculars (this crate), just change it back from *oculars to *self
+                    // if implemented from missing members, rust analyzer usually will change *self to *quadoculars (this crate), just change it back from *quadoculars to *self
                     *mut_struct = loaded;
                 }
                 _ => (),
@@ -420,7 +419,7 @@ pub trait LiveJson {
         if let Ok(file) = File::open(json) {
             match serde_json::from_reader(BufReader::new(file)) {
                 Ok(loaded) => {
-                    // if implemented from missing members, rust analyzer usually will change *self to *quadoculars (this crate), just change it back from *oculars to *self
+                    // if implemented from missing members, rust analyzer usually will change *self to *quadoculars (this crate), just change it back from *quadoculars to *self
                     *self = loaded;
                 }
                 _ => (),
@@ -454,7 +453,7 @@ pub trait LiveRon {
         if let Ok(file) = File::open(ron) {
             match ron::de::from_reader(BufReader::new(file)) {
                 Ok(loaded) => {
-                    // if implemented from missing members, rust analyzer usually will change *self to *quadoculars (this crate), just change it back from *oculars to *self
+                    // if implemented from missing members, rust analyzer usually will change *self to *quadoculars (this crate), just change it back from *quadoculars to *self
                     *self = loaded;
                 }
                 _ => (),
