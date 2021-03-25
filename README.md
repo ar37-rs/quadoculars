@@ -73,4 +73,4 @@ fn main() -> Result<()> {
 
 ## More Examples
 
-Watching Multiple files and live reloading values can be found [here](https://github.com/Ar37-rs/quadoculars/tree/main/example).
+Watching multiple files and live reloading values can be found [here](https://github.com/Ar37-rs/quadoculars/tree/main/example).
